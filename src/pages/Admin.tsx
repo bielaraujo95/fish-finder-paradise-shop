@@ -53,15 +53,19 @@ const Admin = () => {
     if (editingProduct) {
       const updatedProducts = products.map(prod => 
         prod.id === editingProduct.id ? { ...data, id: editingProduct.id } : prod
-      );
+      ) as ProductProps[];
       setProducts(updatedProducts);
     } else {
       // Creating a new product
-      const newProduct = {
+      const newProduct: ProductProps = {
         ...data,
-        id: `${Date.now()}` // Generate a simple ID
+        id: `${Date.now()}`, // Generate a simple ID
+        name: data.name, // Ensure name is defined
+        price: data.price, // Ensure price is defined
+        image: data.image, // Ensure image is defined
+        category: data.category // Ensure category is defined
       };
-      setProducts([...products, newProduct as ProductProps]);
+      setProducts([...products, newProduct]);
     }
     
     setIsDialogOpen(false);
