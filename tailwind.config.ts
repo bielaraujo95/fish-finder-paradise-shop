@@ -66,9 +66,13 @@ export default {
 				fishing: {
 					blue: '#0EA5E9',
 					darkBlue: '#1A1F2C',
+					darkestBlue: '#0F172A',
+					riverBlue: '#1E3A8A',
+					lightBlue: '#38BDF8',
 					red: '#ea384c',
 					gray: '#8E9196',
-					lightGray: '#f5f5f5'
+					lightGray: '#f5f5f5',
+					darkGray: '#333333'
 				}
 			},
 			borderRadius: {
@@ -97,6 +101,9 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			backgroundImage: {
+				'river-pattern': "url('https://images.unsplash.com/photo-1621764516063-ceb246b48f67?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')"
 			}
 		}
 	},
