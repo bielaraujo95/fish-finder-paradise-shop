@@ -8,11 +8,13 @@ import { ProductProps } from "@/components/ProductCard";
 import { getAllProducts } from "@/utils/productUtils";
 import ProductTable from "@/components/admin/ProductTable";
 import ProductForm, { ProductFormValues } from "@/components/admin/ProductForm";
+import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
   const [products, setProducts] = useState<ProductProps[]>(getAllProducts());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductProps | null>(null);
+  const { toast } = useToast();
   
   // Handle form submission
   const onSubmit = (data: ProductFormValues) => {
@@ -22,6 +24,10 @@ const Admin = () => {
         prod.id === editingProduct.id ? { ...data, id: editingProduct.id } : prod
       ) as ProductProps[];
       setProducts(updatedProducts);
+      toast({
+        title: "Produto atualizado",
+        description: `${data.name} foi atualizado com sucesso.`
+      });
     } else {
       // Creating a new product
       const newProduct: ProductProps = {
@@ -33,6 +39,10 @@ const Admin = () => {
         category: data.category
       };
       setProducts([...products, newProduct]);
+      toast({
+        title: "Produto adicionado",
+        description: `${data.name} foi adicionado com sucesso.`
+      });
     }
     
     closeDialog();
@@ -44,9 +54,11 @@ const Admin = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
-      setProducts(products.filter(product => product.id !== id));
-    }
+    setProducts(products.filter(product => product.id !== id));
+    toast({
+      title: "Produto removido",
+      description: "O produto foi removido com sucesso."
+    });
   };
 
   const handleAdd = () => {
@@ -88,12 +100,12 @@ const Admin = () => {
       
       {/* Product Form Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? "Editar Produto" : "Adicionar Produto"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-300">
               Preencha os detalhes do produto abaixo.
             </DialogDescription>
           </DialogHeader>
