@@ -11,6 +11,8 @@ import ProductForm, { ProductFormValues } from "@/components/admin/ProductForm";
 import { useToast } from "@/hooks/use-toast";
 import RegistrationTable from "@/components/admin/RegistrationTable";
 import RegistrationForm, { RegistrationFormValues } from "@/components/admin/RegistrationForm";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { useSearchParams } from "react-router-dom";
 
 // Interface para os registros
 export interface RegistrationProps {
@@ -30,6 +32,8 @@ const Admin = () => {
   const [editingProduct, setEditingProduct] = useState<ProductProps | null>(null);
   const [editingRegistration, setEditingRegistration] = useState<RegistrationProps | null>(null);
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "products";
   
   // Handle product form submission
   const onProductSubmit = (data: ProductFormValues) => {
@@ -142,88 +146,118 @@ const Admin = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 pb-16 bg-fishing-darkBlue/90 backdrop-blur-sm rounded-lg my-6">
-      <h1 className="text-3xl font-bold mb-6 text-white">Área de Administração</h1>
-      
-      <Tabs defaultValue="products" className="w-full">
-        <TabsList className="mb-4 bg-fishing-darkBlue">
-          <TabsTrigger value="products" className="text-white data-[state=active]:bg-fishing-lightBlue">Produtos</TabsTrigger>
-          <TabsTrigger value="registrations" className="text-white data-[state=active]:bg-fishing-lightBlue">Cadastros</TabsTrigger>
-        </TabsList>
+    <AdminLayout>
+      <div className="container mx-auto p-4 pb-16 bg-fishing-darkBlue/90 backdrop-blur-sm rounded-lg my-6">
+        <h1 className="text-3xl font-bold mb-6 text-white">Gerenciamento</h1>
         
-        <TabsContent value="products" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">Gerenciar Produtos</h2>
-            <Button onClick={handleAddProduct} className="bg-fishing-lightBlue hover:bg-fishing-blue">
-              <Plus className="mr-1" size={16} />
-              Novo Produto
-            </Button>
-          </div>
+        <Tabs defaultValue={activeTab} value={activeTab} className="w-full">
+          <TabsList className="mb-4 bg-fishing-darkBlue">
+            <TabsTrigger value="products" className="text-white data-[state=active]:bg-fishing-lightBlue">Produtos</TabsTrigger>
+            <TabsTrigger value="registrations" className="text-white data-[state=active]:bg-fishing-lightBlue">Cadastros</TabsTrigger>
+            <TabsTrigger value="messages" className="text-white data-[state=active]:bg-fishing-lightBlue">Mensagens</TabsTrigger>
+            <TabsTrigger value="settings" className="text-white data-[state=active]:bg-fishing-lightBlue">Configurações</TabsTrigger>
+          </TabsList>
           
-          <ProductTable 
-            products={products} 
-            onEdit={handleEditProduct} 
-            onDelete={handleDeleteProduct} 
-          />
-        </TabsContent>
+          <TabsContent value="products" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Gerenciar Produtos</h2>
+              <Button onClick={handleAddProduct} className="bg-fishing-lightBlue hover:bg-fishing-blue">
+                <Plus className="mr-1" size={16} />
+                Novo Produto
+              </Button>
+            </div>
+            
+            <ProductTable 
+              products={products} 
+              onEdit={handleEditProduct} 
+              onDelete={handleDeleteProduct} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="registrations" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Gerenciar Cadastros</h2>
+              <Button onClick={handleAddRegistration} className="bg-fishing-lightBlue hover:bg-fishing-blue">
+                <Plus className="mr-1" size={16} />
+                Novo Cadastro
+              </Button>
+            </div>
+            
+            <RegistrationTable 
+              registrations={registrations} 
+              onEdit={handleEditRegistration} 
+              onDelete={handleDeleteRegistration} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="messages" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Gerenciar Mensagens</h2>
+            </div>
+            <Card className="bg-fishing-darkestBlue text-white border-0">
+              <CardContent className="p-6">
+                <p className="text-center text-fishing-gray py-8">
+                  Funcionalidade em desenvolvimento
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="settings" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Configurações</h2>
+            </div>
+            <Card className="bg-fishing-darkestBlue text-white border-0">
+              <CardContent className="p-6">
+                <p className="text-center text-fishing-gray py-8">
+                  Funcionalidade em desenvolvimento
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
         
-        <TabsContent value="registrations" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">Gerenciar Cadastros</h2>
-            <Button onClick={handleAddRegistration} className="bg-fishing-lightBlue hover:bg-fishing-blue">
-              <Plus className="mr-1" size={16} />
-              Novo Cadastro
-            </Button>
-          </div>
-          
-          <RegistrationTable 
-            registrations={registrations} 
-            onEdit={handleEditRegistration} 
-            onDelete={handleDeleteRegistration} 
-          />
-        </TabsContent>
-      </Tabs>
-      
-      {/* Product Form Dialog */}
-      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduct ? "Editar Produto" : "Adicionar Produto"}
-            </DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Preencha os detalhes do produto abaixo.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <ProductForm 
-            editingProduct={editingProduct} 
-            onSubmit={onProductSubmit} 
-            onCancel={closeProductDialog} 
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Registration Form Dialog */}
-      <Dialog open={isRegistrationDialogOpen} onOpenChange={setIsRegistrationDialogOpen}>
-        <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
-          <DialogHeader>
-            <DialogTitle>
-              {editingRegistration ? "Editar Cadastro" : "Adicionar Cadastro"}
-            </DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Preencha os detalhes do cadastro abaixo.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <RegistrationForm 
-            editingRegistration={editingRegistration} 
-            onSubmit={onRegistrationSubmit} 
-            onCancel={closeRegistrationDialog} 
-          />
-        </DialogContent>
-      </Dialog>
-    </div>
+        {/* Product Form Dialog */}
+        <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+          <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
+            <DialogHeader>
+              <DialogTitle>
+                {editingProduct ? "Editar Produto" : "Adicionar Produto"}
+              </DialogTitle>
+              <DialogDescription className="text-gray-300">
+                Preencha os detalhes do produto abaixo.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <ProductForm 
+              editingProduct={editingProduct} 
+              onSubmit={onProductSubmit} 
+              onCancel={closeProductDialog} 
+            />
+          </DialogContent>
+        </Dialog>
+        
+        {/* Registration Form Dialog */}
+        <Dialog open={isRegistrationDialogOpen} onOpenChange={setIsRegistrationDialogOpen}>
+          <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
+            <DialogHeader>
+              <DialogTitle>
+                {editingRegistration ? "Editar Cadastro" : "Adicionar Cadastro"}
+              </DialogTitle>
+              <DialogDescription className="text-gray-300">
+                Preencha os detalhes do cadastro abaixo.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <RegistrationForm 
+              editingRegistration={editingRegistration} 
+              onSubmit={onRegistrationSubmit} 
+              onCancel={closeRegistrationDialog} 
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AdminLayout>
   );
 };
 
