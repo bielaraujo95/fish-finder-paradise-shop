@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { RegistrationProps } from "@/pages/Admin";
+import { RegistrationProps } from "@/types/admin";
 import RegistrationTable from "@/components/admin/RegistrationTable";
 import RegistrationForm, { RegistrationFormValues } from "@/components/admin/RegistrationForm";
 
