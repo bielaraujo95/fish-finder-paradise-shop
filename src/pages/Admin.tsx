@@ -1,149 +1,21 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
 import { ProductProps } from "@/components/ProductCard";
 import { getAllProducts } from "@/utils/productUtils";
-import ProductTable from "@/components/admin/ProductTable";
-import ProductForm, { ProductFormValues } from "@/components/admin/ProductForm";
-import { useToast } from "@/hooks/use-toast";
-import RegistrationTable from "@/components/admin/RegistrationTable";
-import RegistrationForm, { RegistrationFormValues } from "@/components/admin/RegistrationForm";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useSearchParams } from "react-router-dom";
-
-// Interface para os registros
-export interface RegistrationProps {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  status: string;
-  registrationDate: string;
-}
+import ProductsTab from "@/components/admin/ProductsTab";
+import RegistrationsTab from "@/components/admin/RegistrationsTab";
+import MessagesTab from "@/components/admin/MessagesTab";
+import SettingsTab from "@/components/admin/SettingsTab";
+import { RegistrationProps } from "@/types/admin";
 
 const Admin = () => {
   const [products, setProducts] = useState<ProductProps[]>(getAllProducts());
   const [registrations, setRegistrations] = useState<RegistrationProps[]>([]);
-  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
-  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductProps | null>(null);
-  const [editingRegistration, setEditingRegistration] = useState<RegistrationProps | null>(null);
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "products";
-  
-  // Handle product form submission
-  const onProductSubmit = (data: ProductFormValues) => {
-    // If editing an existing product
-    if (editingProduct) {
-      const updatedProducts = products.map(prod => 
-        prod.id === editingProduct.id ? { ...data, id: editingProduct.id } : prod
-      ) as ProductProps[];
-      setProducts(updatedProducts);
-      toast({
-        title: "Produto atualizado",
-        description: `${data.name} foi atualizado com sucesso.`
-      });
-    } else {
-      // Creating a new product
-      const newProduct: ProductProps = {
-        ...data,
-        id: `${Date.now()}`, // Generate a simple ID
-        name: data.name, 
-        price: data.price,
-        image: data.image,
-        category: data.category
-      };
-      setProducts([...products, newProduct]);
-      toast({
-        title: "Produto adicionado",
-        description: `${data.name} foi adicionado com sucesso.`
-      });
-    }
-    
-    closeProductDialog();
-  };
-
-  // Handle registration form submission
-  const onRegistrationSubmit = (data: RegistrationFormValues) => {
-    // If editing an existing registration
-    if (editingRegistration) {
-      const updatedRegistrations = registrations.map(reg => 
-        reg.id === editingRegistration.id ? { ...data, id: editingRegistration.id } : reg
-      ) as RegistrationProps[];
-      setRegistrations(updatedRegistrations);
-      toast({
-        title: "Cadastro atualizado",
-        description: `Cadastro de ${data.name} foi atualizado com sucesso.`
-      });
-    } else {
-      // Creating a new registration - ensure all required fields are provided
-      const newRegistration: RegistrationProps = {
-        id: `${Date.now()}`,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        status: data.status || "Pendente",
-        registrationDate: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
-      };
-      setRegistrations([...registrations, newRegistration]);
-      toast({
-        title: "Cadastro adicionado",
-        description: `Cadastro de ${data.name} foi adicionado com sucesso.`
-      });
-    }
-    
-    closeRegistrationDialog();
-  };
-
-  const handleEditProduct = (product: ProductProps) => {
-    setEditingProduct(product);
-    setIsProductDialogOpen(true);
-  };
-
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(product => product.id !== id));
-    toast({
-      title: "Produto removido",
-      description: "O produto foi removido com sucesso."
-    });
-  };
-
-  const handleAddProduct = () => {
-    setEditingProduct(null);
-    setIsProductDialogOpen(true);
-  };
-
-  const closeProductDialog = () => {
-    setIsProductDialogOpen(false);
-    setEditingProduct(null);
-  };
-  
-  const handleEditRegistration = (registration: RegistrationProps) => {
-    setEditingRegistration(registration);
-    setIsRegistrationDialogOpen(true);
-  };
-
-  const handleDeleteRegistration = (id: string) => {
-    setRegistrations(registrations.filter(registration => registration.id !== id));
-    toast({
-      title: "Cadastro removido",
-      description: "O cadastro foi removido com sucesso."
-    });
-  };
-
-  const handleAddRegistration = () => {
-    setEditingRegistration(null);
-    setIsRegistrationDialogOpen(true);
-  };
-
-  const closeRegistrationDialog = () => {
-    setIsRegistrationDialogOpen(false);
-    setEditingRegistration(null);
-  };
 
   return (
     <AdminLayout>
@@ -159,103 +31,21 @@ const Admin = () => {
           </TabsList>
           
           <TabsContent value="products" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Gerenciar Produtos</h2>
-              <Button onClick={handleAddProduct} className="bg-fishing-lightBlue hover:bg-fishing-blue">
-                <Plus className="mr-1" size={16} />
-                Novo Produto
-              </Button>
-            </div>
-            
-            <ProductTable 
-              products={products} 
-              onEdit={handleEditProduct} 
-              onDelete={handleDeleteProduct} 
-            />
+            <ProductsTab products={products} setProducts={setProducts} />
           </TabsContent>
           
           <TabsContent value="registrations" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Gerenciar Cadastros</h2>
-              <Button onClick={handleAddRegistration} className="bg-fishing-lightBlue hover:bg-fishing-blue">
-                <Plus className="mr-1" size={16} />
-                Novo Cadastro
-              </Button>
-            </div>
-            
-            <RegistrationTable 
-              registrations={registrations} 
-              onEdit={handleEditRegistration} 
-              onDelete={handleDeleteRegistration} 
-            />
+            <RegistrationsTab registrations={registrations} setRegistrations={setRegistrations} />
           </TabsContent>
           
           <TabsContent value="messages" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Gerenciar Mensagens</h2>
-            </div>
-            <Card className="bg-fishing-darkestBlue text-white border-0">
-              <CardContent className="p-6">
-                <p className="text-center text-fishing-gray py-8">
-                  Funcionalidade em desenvolvimento
-                </p>
-              </CardContent>
-            </Card>
+            <MessagesTab />
           </TabsContent>
           
           <TabsContent value="settings" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Configurações</h2>
-            </div>
-            <Card className="bg-fishing-darkestBlue text-white border-0">
-              <CardContent className="p-6">
-                <p className="text-center text-fishing-gray py-8">
-                  Funcionalidade em desenvolvimento
-                </p>
-              </CardContent>
-            </Card>
+            <SettingsTab />
           </TabsContent>
         </Tabs>
-        
-        {/* Product Form Dialog */}
-        <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-          <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
-            <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? "Editar Produto" : "Adicionar Produto"}
-              </DialogTitle>
-              <DialogDescription className="text-gray-300">
-                Preencha os detalhes do produto abaixo.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <ProductForm 
-              editingProduct={editingProduct} 
-              onSubmit={onProductSubmit} 
-              onCancel={closeProductDialog} 
-            />
-          </DialogContent>
-        </Dialog>
-        
-        {/* Registration Form Dialog */}
-        <Dialog open={isRegistrationDialogOpen} onOpenChange={setIsRegistrationDialogOpen}>
-          <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
-            <DialogHeader>
-              <DialogTitle>
-                {editingRegistration ? "Editar Cadastro" : "Adicionar Cadastro"}
-              </DialogTitle>
-              <DialogDescription className="text-gray-300">
-                Preencha os detalhes do cadastro abaixo.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <RegistrationForm 
-              editingRegistration={editingRegistration} 
-              onSubmit={onRegistrationSubmit} 
-              onCancel={closeRegistrationDialog} 
-            />
-          </DialogContent>
-        </Dialog>
       </div>
     </AdminLayout>
   );

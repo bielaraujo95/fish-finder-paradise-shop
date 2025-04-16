@@ -7,7 +7,7 @@ import { Save } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RegistrationProps } from "@/pages/Admin";
+import { RegistrationProps } from "@/types/admin";
 
 // Define form validation schema
 const registrationSchema = z.object({
