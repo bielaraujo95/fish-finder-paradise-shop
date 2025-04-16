@@ -9,15 +9,30 @@ import { getAllProducts } from "@/utils/productUtils";
 import ProductTable from "@/components/admin/ProductTable";
 import ProductForm, { ProductFormValues } from "@/components/admin/ProductForm";
 import { useToast } from "@/hooks/use-toast";
+import RegistrationTable from "@/components/admin/RegistrationTable";
+import RegistrationForm, { RegistrationFormValues } from "@/components/admin/RegistrationForm";
+
+// Interface para os registros
+export interface RegistrationProps {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  registrationDate: string;
+}
 
 const Admin = () => {
   const [products, setProducts] = useState<ProductProps[]>(getAllProducts());
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [registrations, setRegistrations] = useState<RegistrationProps[]>([]);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductProps | null>(null);
+  const [editingRegistration, setEditingRegistration] = useState<RegistrationProps | null>(null);
   const { toast } = useToast();
   
-  // Handle form submission
-  const onSubmit = (data: ProductFormValues) => {
+  // Handle product form submission
+  const onProductSubmit = (data: ProductFormValues) => {
     // If editing an existing product
     if (editingProduct) {
       const updatedProducts = products.map(prod => 
@@ -45,15 +60,44 @@ const Admin = () => {
       });
     }
     
-    closeDialog();
+    closeProductDialog();
   };
 
-  const handleEdit = (product: ProductProps) => {
+  // Handle registration form submission
+  const onRegistrationSubmit = (data: RegistrationFormValues) => {
+    // If editing an existing registration
+    if (editingRegistration) {
+      const updatedRegistrations = registrations.map(reg => 
+        reg.id === editingRegistration.id ? { ...data, id: editingRegistration.id } : reg
+      ) as RegistrationProps[];
+      setRegistrations(updatedRegistrations);
+      toast({
+        title: "Cadastro atualizado",
+        description: `Cadastro de ${data.name} foi atualizado com sucesso.`
+      });
+    } else {
+      // Creating a new registration
+      const newRegistration: RegistrationProps = {
+        ...data,
+        id: `${Date.now()}`, // Generate a simple ID
+        registrationDate: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
+      };
+      setRegistrations([...registrations, newRegistration]);
+      toast({
+        title: "Cadastro adicionado",
+        description: `Cadastro de ${data.name} foi adicionado com sucesso.`
+      });
+    }
+    
+    closeRegistrationDialog();
+  };
+
+  const handleEditProduct = (product: ProductProps) => {
     setEditingProduct(product);
-    setIsDialogOpen(true);
+    setIsProductDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteProduct = (id: string) => {
     setProducts(products.filter(product => product.id !== id));
     toast({
       title: "Produto removido",
@@ -61,14 +105,37 @@ const Admin = () => {
     });
   };
 
-  const handleAdd = () => {
+  const handleAddProduct = () => {
     setEditingProduct(null);
-    setIsDialogOpen(true);
+    setIsProductDialogOpen(true);
   };
 
-  const closeDialog = () => {
-    setIsDialogOpen(false);
+  const closeProductDialog = () => {
+    setIsProductDialogOpen(false);
     setEditingProduct(null);
+  };
+  
+  const handleEditRegistration = (registration: RegistrationProps) => {
+    setEditingRegistration(registration);
+    setIsRegistrationDialogOpen(true);
+  };
+
+  const handleDeleteRegistration = (id: string) => {
+    setRegistrations(registrations.filter(registration => registration.id !== id));
+    toast({
+      title: "Cadastro removido",
+      description: "O cadastro foi removido com sucesso."
+    });
+  };
+
+  const handleAddRegistration = () => {
+    setEditingRegistration(null);
+    setIsRegistrationDialogOpen(true);
+  };
+
+  const closeRegistrationDialog = () => {
+    setIsRegistrationDialogOpen(false);
+    setEditingRegistration(null);
   };
 
   return (
@@ -78,13 +145,13 @@ const Admin = () => {
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="mb-4 bg-fishing-darkBlue">
           <TabsTrigger value="products" className="text-white data-[state=active]:bg-fishing-lightBlue">Produtos</TabsTrigger>
-          {/* Future tabs can be added here */}
+          <TabsTrigger value="registrations" className="text-white data-[state=active]:bg-fishing-lightBlue">Cadastros</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-white">Gerenciar Produtos</h2>
-            <Button onClick={handleAdd} className="bg-fishing-lightBlue hover:bg-fishing-blue">
+            <Button onClick={handleAddProduct} className="bg-fishing-lightBlue hover:bg-fishing-blue">
               <Plus className="mr-1" size={16} />
               Novo Produto
             </Button>
@@ -92,14 +159,30 @@ const Admin = () => {
           
           <ProductTable 
             products={products} 
-            onEdit={handleEdit} 
-            onDelete={handleDelete} 
+            onEdit={handleEditProduct} 
+            onDelete={handleDeleteProduct} 
+          />
+        </TabsContent>
+        
+        <TabsContent value="registrations" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-white">Gerenciar Cadastros</h2>
+            <Button onClick={handleAddRegistration} className="bg-fishing-lightBlue hover:bg-fishing-blue">
+              <Plus className="mr-1" size={16} />
+              Novo Cadastro
+            </Button>
+          </div>
+          
+          <RegistrationTable 
+            registrations={registrations} 
+            onEdit={handleEditRegistration} 
+            onDelete={handleDeleteRegistration} 
           />
         </TabsContent>
       </Tabs>
       
       {/* Product Form Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
           <DialogHeader>
             <DialogTitle>
@@ -112,8 +195,28 @@ const Admin = () => {
           
           <ProductForm 
             editingProduct={editingProduct} 
-            onSubmit={onSubmit} 
-            onCancel={closeDialog} 
+            onSubmit={onProductSubmit} 
+            onCancel={closeProductDialog} 
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Registration Form Dialog */}
+      <Dialog open={isRegistrationDialogOpen} onOpenChange={setIsRegistrationDialogOpen}>
+        <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRegistration ? "Editar Cadastro" : "Adicionar Cadastro"}
+            </DialogTitle>
+            <DialogDescription className="text-gray-300">
+              Preencha os detalhes do cadastro abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <RegistrationForm 
+            editingRegistration={editingRegistration} 
+            onSubmit={onRegistrationSubmit} 
+            onCancel={closeRegistrationDialog} 
           />
         </DialogContent>
       </Dialog>
