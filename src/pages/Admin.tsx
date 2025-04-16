@@ -76,10 +76,13 @@ const Admin = () => {
         description: `Cadastro de ${data.name} foi atualizado com sucesso.`
       });
     } else {
-      // Creating a new registration
+      // Creating a new registration - ensure all required fields are provided
       const newRegistration: RegistrationProps = {
-        ...data,
-        id: `${Date.now()}`, // Generate a simple ID
+        id: `${Date.now()}`,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        status: data.status || "Pendente",
         registrationDate: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
       };
       setRegistrations([...registrations, newRegistration]);
