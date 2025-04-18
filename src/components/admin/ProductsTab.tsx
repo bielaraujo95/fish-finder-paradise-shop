@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProductProps } from "@/components/ProductCard";
@@ -7,47 +7,126 @@ import ProductTable from "@/components/admin/ProductTable";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ProductForm, { ProductFormValues } from "@/components/admin/ProductForm";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface ProductsTabProps {
-  products: ProductProps[];
-  setProducts: React.Dispatch<React.SetStateAction<ProductProps[]>>;
-}
-
-const ProductsTab = ({ products, setProducts }: ProductsTabProps) => {
+const ProductsTab = () => {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductProps | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch products using React Query
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast({
+          title: "Erro ao carregar produtos",
+          description: error.message,
+          variant: "destructive"
+        });
+        return [];
+      }
+
+      return data.map(product => ({
+        ...product,
+        id: product.id.toString()
+      })) as ProductProps[];
+    }
+  });
+
+  // Create product mutation
+  const createProduct = useMutation({
+    mutationFn: async (data: ProductFormValues) => {
+      const { error } = await supabase
+        .from('products')
+        .insert([data]);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Produto adicionado",
+        description: "O produto foi adicionado com sucesso."
+      });
+      closeProductDialog();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao adicionar produto",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update product mutation
+  const updateProduct = useMutation({
+    mutationFn: async ({ id, ...data }: ProductFormValues & { id: string }) => {
+      const { error } = await supabase
+        .from('products')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Produto atualizado",
+        description: "O produto foi atualizado com sucesso."
+      });
+      closeProductDialog();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar produto",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete product mutation
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Produto removido",
+        description: "O produto foi removido com sucesso."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao remover produto",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
 
   // Handle product form submission
   const onProductSubmit = (data: ProductFormValues) => {
-    // If editing an existing product
     if (editingProduct) {
-      const updatedProducts = products.map(prod => 
-        prod.id === editingProduct.id ? { ...data, id: editingProduct.id } : prod
-      ) as ProductProps[];
-      setProducts(updatedProducts);
-      toast({
-        title: "Produto atualizado",
-        description: `${data.name} foi atualizado com sucesso.`
-      });
+      updateProduct.mutate({ ...data, id: editingProduct.id });
     } else {
-      // Creating a new product
-      const newProduct: ProductProps = {
-        ...data,
-        id: `${Date.now()}`, // Generate a simple ID
-        name: data.name, 
-        price: data.price,
-        image: data.image,
-        category: data.category
-      };
-      setProducts([...products, newProduct]);
-      toast({
-        title: "Produto adicionado",
-        description: `${data.name} foi adicionado com sucesso.`
-      });
+      createProduct.mutate(data);
     }
-    
-    closeProductDialog();
   };
 
   const handleEditProduct = (product: ProductProps) => {
@@ -56,11 +135,7 @@ const ProductsTab = ({ products, setProducts }: ProductsTabProps) => {
   };
 
   const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(product => product.id !== id));
-    toast({
-      title: "Produto removido",
-      description: "O produto foi removido com sucesso."
-    });
+    deleteProduct.mutate(id);
   };
 
   const handleAddProduct = () => {
@@ -83,13 +158,16 @@ const ProductsTab = ({ products, setProducts }: ProductsTabProps) => {
         </Button>
       </div>
       
-      <ProductTable 
-        products={products} 
-        onEdit={handleEditProduct} 
-        onDelete={handleDeleteProduct} 
-      />
+      {isLoading ? (
+        <div className="text-center text-white">Carregando produtos...</div>
+      ) : (
+        <ProductTable 
+          products={products} 
+          onEdit={handleEditProduct} 
+          onDelete={handleDeleteProduct} 
+        />
+      )}
 
-      {/* Product Form Dialog */}
       <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
         <DialogContent className="max-w-md bg-fishing-darkestBlue text-white border-fishing-blue">
           <DialogHeader>
