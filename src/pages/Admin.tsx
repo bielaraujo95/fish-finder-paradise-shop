@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useSearchParams } from "react-router-dom";
@@ -7,10 +7,31 @@ import ProductsTab from "@/components/admin/ProductsTab";
 import RegistrationsTab from "@/components/admin/RegistrationsTab";
 import MessagesTab from "@/components/admin/MessagesTab";
 import SettingsTab from "@/components/admin/SettingsTab";
+import { RegistrationProps } from "@/types/admin";
 
 const Admin = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "products";
+  
+  // Add state for registrations
+  const [registrations, setRegistrations] = useState<RegistrationProps[]>([
+    {
+      id: "1",
+      name: "João Silva",
+      email: "joao.silva@exemplo.com",
+      phone: "(11) 91234-5678",
+      status: "Aprovado",
+      registrationDate: "2024-04-20"
+    },
+    {
+      id: "2",
+      name: "Maria Souza",
+      email: "maria.souza@exemplo.com",
+      phone: "(21) 98765-4321",
+      status: "Pendente",
+      registrationDate: "2024-04-21"
+    }
+  ]);
 
   return (
     <AdminLayout>
@@ -30,7 +51,10 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="registrations" className="space-y-4">
-            <RegistrationsTab />
+            <RegistrationsTab 
+              registrations={registrations} 
+              setRegistrations={setRegistrations} 
+            />
           </TabsContent>
           
           <TabsContent value="messages" className="space-y-4">
