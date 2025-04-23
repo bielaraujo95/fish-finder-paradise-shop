@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProductProps } from "@/components/ProductCard";
@@ -13,8 +13,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 const ProductsTab = () => {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductProps | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error || !data.session) {
+        toast({
+          title: "Acesso restrito",
+          description: "Você precisa estar autenticado para gerenciar produtos.",
+          variant: "destructive"
+        });
+      }
+      setIsAuthChecking(false);
+    };
+    
+    checkAuth();
+  }, [toast]);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products'],
@@ -149,6 +167,10 @@ const ProductsTab = () => {
     setIsProductDialogOpen(false);
     setEditingProduct(null);
   };
+
+  if (isAuthChecking) {
+    return <div className="text-center text-white">Verificando autenticação...</div>;
+  }
 
   return (
     <div className="space-y-4">
