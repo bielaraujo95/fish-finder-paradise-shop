@@ -1,9 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Save } from "lucide-react";
+import { Save, Image as ImageIcon } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,9 @@ interface ProductFormProps {
 }
 
 export const ProductForm = ({ editingProduct, onSubmit, onCancel }: ProductFormProps) => {
+  const [imagePreview, setImagePreview] = useState<string>(editingProduct?.image || "");
+  const [imageError, setImageError] = useState<boolean>(false);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -36,6 +39,16 @@ export const ProductForm = ({ editingProduct, onSubmit, onCancel }: ProductFormP
       category: editingProduct?.category || "Equipamentos"
     }
   });
+
+  const handleImageChange = (url: string) => {
+    setImagePreview(url);
+    setImageError(false);
+    form.setValue("image", url);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   return (
     <Form {...form}>
@@ -104,20 +117,48 @@ export const ProductForm = ({ editingProduct, onSubmit, onCancel }: ProductFormP
             <FormItem>
               <FormLabel>URL da Imagem</FormLabel>
               <FormControl>
-                <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
-              </FormControl>
-              {field.value && (
-                <div className="mt-2 rounded overflow-hidden">
-                  <img 
-                    src={field.value}
-                    alt="Preview" 
-                    className="w-full h-32 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Imagem+Inválida';
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="https://exemplo.com/imagem.jpg" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleImageChange(e.target.value);
                     }}
                   />
                 </div>
-              )}
+              </FormControl>
+              
+              <div className="mt-2">
+                {imagePreview ? (
+                  <div className="relative border rounded overflow-hidden">
+                    {imageError ? (
+                      <div className="flex flex-col items-center justify-center h-40 bg-gray-800">
+                        <ImageIcon size={32} className="text-gray-500" />
+                        <p className="text-gray-500 text-sm mt-2">Imagem inválida</p>
+                      </div>
+                    ) : (
+                      <img 
+                        src={imagePreview}
+                        alt="Preview" 
+                        className="w-full h-40 object-cover"
+                        onError={handleImageError}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-40 bg-gray-800 border rounded">
+                    <ImageIcon size={32} className="text-gray-500" />
+                    <p className="text-gray-500 text-sm mt-2">Sem imagem</p>
+                  </div>
+                )}
+                
+                <div className="mt-2">
+                  <label className="text-xs text-gray-400">
+                    Use uma URL de imagem ou link público. Dimensões recomendadas: pelo menos 500x500 pixels.
+                  </label>
+                </div>
+              </div>
               <FormMessage />
             </FormItem>
           )}
