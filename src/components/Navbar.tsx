@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
@@ -41,6 +41,9 @@ const Navbar = () => {
               <Link to="/roupas" className="text-gray-700 hover:text-fishing-blue px-3 py-2 rounded-md font-medium">
                 Roupas
               </Link>
+              <Link to="/blog" className="text-gray-700 hover:text-fishing-blue px-3 py-2 rounded-md font-medium">
+                Blog
+              </Link>
             </div>
           </div>
 
@@ -50,6 +53,14 @@ const Navbar = () => {
               <ShoppingCart className="h-5 w-5" />
               <span className="sr-only">Carrinho</span>
             </Button>
+            
+            {/* Admin panel link */}
+            <Link to="/admin" className="mr-2">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Admin</span>
+              </Button>
+            </Link>
             
             <div className="md:hidden">
               <Button variant="ghost" size="icon" onClick={toggleMenu}>
@@ -101,6 +112,20 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             Roupas
+          </Link>
+          <Link 
+            to="/blog" 
+            className="text-gray-700 hover:text-fishing-blue block px-3 py-2 rounded-md font-medium"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Blog
+          </Link>
+          <Link 
+            to="/admin" 
+            className="text-gray-700 hover:text-fishing-blue block px-3 py-2 rounded-md font-medium"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Administração
           </Link>
         </div>
       </div>
