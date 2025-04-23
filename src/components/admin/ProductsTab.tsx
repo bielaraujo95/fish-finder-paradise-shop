@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProductProps } from "@/components/ProductCard";
@@ -16,7 +16,6 @@ const ProductsTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch products using React Query
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
@@ -34,19 +33,20 @@ const ProductsTab = () => {
         return [];
       }
 
-      return data.map(product => ({
-        ...product,
-        id: product.id.toString()
-      })) as ProductProps[];
+      return data as ProductProps[];
     }
   });
 
-  // Create product mutation
   const createProduct = useMutation({
     mutationFn: async (data: ProductFormValues) => {
       const { error } = await supabase
         .from('products')
-        .insert([data]);
+        .insert([{
+          name: data.name,
+          price: data.price,
+          image: data.image,
+          category: data.category
+        }]);
 
       if (error) throw error;
     },
@@ -67,12 +67,16 @@ const ProductsTab = () => {
     }
   });
 
-  // Update product mutation
   const updateProduct = useMutation({
     mutationFn: async ({ id, ...data }: ProductFormValues & { id: string }) => {
       const { error } = await supabase
         .from('products')
-        .update(data)
+        .update({
+          name: data.name,
+          price: data.price,
+          image: data.image,
+          category: data.category
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -94,7 +98,6 @@ const ProductsTab = () => {
     }
   });
 
-  // Delete product mutation
   const deleteProduct = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -120,7 +123,6 @@ const ProductsTab = () => {
     }
   });
 
-  // Handle product form submission
   const onProductSubmit = (data: ProductFormValues) => {
     if (editingProduct) {
       updateProduct.mutate({ ...data, id: editingProduct.id });

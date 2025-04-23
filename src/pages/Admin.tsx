@@ -1,19 +1,14 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductProps } from "@/components/ProductCard";
-import { getAllProducts } from "@/utils/productUtils";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useSearchParams } from "react-router-dom";
 import ProductsTab from "@/components/admin/ProductsTab";
 import RegistrationsTab from "@/components/admin/RegistrationsTab";
 import MessagesTab from "@/components/admin/MessagesTab";
 import SettingsTab from "@/components/admin/SettingsTab";
-import { RegistrationProps } from "@/types/admin";
 
 const Admin = () => {
-  const [products, setProducts] = useState<ProductProps[]>(getAllProducts());
-  const [registrations, setRegistrations] = useState<RegistrationProps[]>([]);
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "products";
 
@@ -31,11 +26,11 @@ const Admin = () => {
           </TabsList>
           
           <TabsContent value="products" className="space-y-4">
-            <ProductsTab products={products} setProducts={setProducts} />
+            <ProductsTab />
           </TabsContent>
           
           <TabsContent value="registrations" className="space-y-4">
-            <RegistrationsTab registrations={registrations} setRegistrations={setRegistrations} />
+            <RegistrationsTab />
           </TabsContent>
           
           <TabsContent value="messages" className="space-y-4">
